@@ -1,0 +1,25 @@
+# Checkov policy for lab/portfolio use.
+# Fixes that are free are applied in Terraform; costly or lab-inappropriate
+# checks are skipped here with justification. See README.md#checkov-policy.
+
+framework:
+  - terraform
+
+skip-check:
+  # ALB access logs require S3 bucket + storage (~ongoing cost)
+  - CKV_AWS_91
+  # Deletion protection blocks terraform destroy in lab sessions
+  - CKV_AWS_150
+  - CKV_AWS_293
+  # Multi-AZ roughly doubles RDS cost
+  - CKV_AWS_157
+  # Enhanced monitoring is a paid RDS feature
+  - CKV_AWS_118
+  # WAF adds ~$5+/month plus rule costs
+  - CKV2_AWS_28
+  # VPC flow logs incur CloudWatch charges
+  - CKV2_AWS_11
+  # Public subnets intentionally auto-assign public IPs for ALB/NAT placement
+  - CKV_AWS_130
+  # False positive: security groups are attached to ALB, EC2, and RDS
+  - CKV2_AWS_5
