@@ -116,3 +116,39 @@ RDS runs **single-AZ** (`db_multi_az = false`) for lab cost. Set `db_multi_az = 
 
 - **PR checks** (`.github/workflows/terraform-checks.yml`): `fmt`, `init`, `validate`
 - **Security scans** (`.github/workflows/devsecops.yml`): Gitleaks, Checkov
+
+## Checkov policy
+
+Checkov enforces security best practices, but not every rule is appropriate for a **cost-conscious lab**. This project uses two strategies:
+
+### Fixed in Terraform (free)
+
+| Check | Fix |
+|-------|-----|
+| CKV_AWS_233 | ACM `create_before_destroy` lifecycle |
+| CKV_AWS_131 | ALB `drop_invalid_header_fields` |
+| CKV_AWS_79 | EC2 IMDSv2 required (`http_tokens = required`) |
+| CKV_AWS_226 | RDS `auto_minor_version_upgrade` |
+| CKV_AWS_161 | RDS IAM authentication enabled |
+| CKV_AWS_129 | RDS CloudWatch log exports |
+| CKV_AWS_16 | RDS `storage_encrypted` |
+| CKV_AWS_23 / CKV_AWS_382 | Security group rules with descriptions and least-privilege egress |
+| CKV_AWS_260 | Removed port 80 from ALB (HTTPS only) |
+| CKV2_AWS_60 | RDS `copy_tags_to_snapshot` |
+| CKV2_AWS_12 | Default VPC security group restricted |
+
+### Skipped in `.checkov.yml` (cost or lab trade-off)
+
+| Check | Reason skipped |
+|-------|----------------|
+| CKV_AWS_91 | ALB access logging → S3 storage cost |
+| CKV_AWS_150 | ALB deletion protection → blocks `terraform destroy` |
+| CKV_AWS_293 | RDS deletion protection → blocks `terraform destroy` |
+| CKV_AWS_157 | RDS Multi-AZ → ~doubles RDS cost |
+| CKV_AWS_118 | RDS enhanced monitoring → paid feature |
+| CKV2_AWS_28 | WAF on ALB → ~$5+/month |
+| CKV2_AWS_11 | VPC flow logs → CloudWatch cost |
+| CKV_AWS_130 | Public subnets need `map_public_ip_on_launch` by design |
+| CKV2_AWS_5 | False positive — SGs are attached to ALB, EC2, and RDS |
+
+In an interview, explain: *"I fix all no-cost security controls in code and document intentional exceptions where cost or lab teardown requirements conflict with production-grade defaults."*

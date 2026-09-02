@@ -45,8 +45,9 @@ module "vpc" {
 module "security" {
   source = "./modules/security"
 
-  name   = var.name
-  vpc_id = module.vpc.vpc_id
+  name           = var.name
+  vpc_id         = module.vpc.vpc_id
+  vpc_cidr_block = module.vpc.vpc_cidr_block
 }
 
 module "alb" {

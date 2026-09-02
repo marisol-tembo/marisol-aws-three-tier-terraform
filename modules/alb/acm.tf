@@ -23,6 +23,10 @@ resource "aws_acm_certificate" "app" {
   private_key      = tls_private_key.app.private_key_pem
   certificate_body = tls_self_signed_cert.app.cert_pem
 
+  lifecycle {
+    create_before_destroy = true
+  }
+
   tags = {
     Name = "${var.name}-alb-cert"
   }

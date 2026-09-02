@@ -8,6 +8,14 @@ resource "aws_vpc" "main" {
   }
 }
 
+resource "aws_default_security_group" "default" {
+  vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name = "${var.name}-default-sg-restricted"
+  }
+}
+
 resource "aws_subnet" "public" {
   count = length(var.availability_zones)
 
