@@ -44,6 +44,7 @@ flowchart TB
 | `modules/vpc` | VPC, subnets, IGW, NAT, route tables |
 | `modules/security` | Security groups for ALB, app, RDS |
 | `modules/alb` | Application Load Balancer and target group |
+| `modules/webapp` | Flask app, dependencies, and EC2 bootstrap script |
 | `modules/compute` | Launch template, ASG, IAM/SSM instance profile |
 | `modules/database` | RDS MySQL subnet group and instance |
 | `modules/monitoring` | CloudWatch alarms |
@@ -67,6 +68,16 @@ After apply, open the ALB URL:
 
 ```bash
 terraform output alb_url
+```
+
+The page tests **app → RDS connectivity** on each load:
+- Green badge = EC2 reached MySQL, ran `SELECT VERSION()`, and wrote to a `connection_tests` table
+- Red badge = connection failed (refresh after RDS finishes starting)
+
+Use `curl -k` if testing from the terminal (self-signed certificate).
+
+```bash
+curl -k $(terraform output -raw alb_url)
 ```
 
 **Destroy when done** to avoid ongoing charges:

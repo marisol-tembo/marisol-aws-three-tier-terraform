@@ -72,6 +72,17 @@ module "database" {
   multi_az              = var.db_multi_az
 }
 
+module "webapp" {
+  source = "./modules/webapp"
+
+  db_endpoint  = module.database.db_endpoint
+  db_name      = var.db_name
+  db_username  = var.db_username
+  db_password  = random_password.db.result
+  tls_cert_pem = module.alb.tls_cert_pem
+  tls_key_pem  = module.alb.tls_key_pem
+}
+
 module "compute" {
   source = "./modules/compute"
 
@@ -83,12 +94,7 @@ module "compute" {
   asg_min_size           = var.asg_min_size
   asg_max_size           = var.asg_max_size
   asg_desired_capacity   = var.asg_desired_capacity
-  db_endpoint            = module.database.db_endpoint
-  db_name                = var.db_name
-  db_username            = var.db_username
-  db_password            = random_password.db.result
-  tls_cert_pem           = module.alb.tls_cert_pem
-  tls_key_pem            = module.alb.tls_key_pem
+  user_data              = module.webapp.user_data
 }
 
 module "monitoring" {
