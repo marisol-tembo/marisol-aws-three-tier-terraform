@@ -32,5 +32,10 @@ jobs:
       - name: Terraform Plan
         run: terraform plan -out=tfplan
 
+      - name: Terraform Apply
+        run: terraform apply tfplan
+
+     # - name: Terraform Destroy
+      # run: terraform destroy -auto-approve
       # Manual workflow: run apply locally or extend this job when ready.
       # Always destroy lab resources after demos to control cost.
