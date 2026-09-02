@@ -49,6 +49,11 @@ def check_database():
         }
 
 
+@app.route("/health")
+def health():
+    return Response("ok", mimetype="text/plain", status=200)
+
+
 @app.route("/")
 def index():
     db = check_database()
