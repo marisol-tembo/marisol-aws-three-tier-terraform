@@ -55,14 +55,7 @@ resource "aws_launch_template" "app" {
     name = aws_iam_instance_profile.ec2.name
   }
 
-  user_data = base64encode(templatefile("${path.module}/user_data.sh", {
-    db_endpoint  = var.db_endpoint
-    db_name      = var.db_name
-    db_username  = var.db_username
-    db_password  = var.db_password
-    tls_cert_pem = var.tls_cert_pem
-    tls_key_pem  = var.tls_key_pem
-  }))
+  user_data = base64encode(var.user_data)
 
   metadata_options {
     http_endpoint               = "enabled"
