@@ -78,12 +78,22 @@ resource "aws_security_group_rule" "app_egress_https" {
   security_group_id = aws_security_group.app.id
 }
 
-resource "aws_security_group_rule" "app_egress_dns" {
+resource "aws_security_group_rule" "app_egress_dns_udp" {
   type              = "egress"
-  description       = "DNS resolution"
+  description       = "DNS resolution UDP"
   from_port         = 53
   to_port           = 53
   protocol          = "udp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.app.id
+}
+
+resource "aws_security_group_rule" "app_egress_dns_tcp" {
+  type              = "egress"
+  description       = "DNS resolution TCP"
+  from_port         = 53
+  to_port           = 53
+  protocol          = "tcp"
   cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = aws_security_group.app.id
 }

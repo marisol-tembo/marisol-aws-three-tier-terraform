@@ -112,7 +112,7 @@ def index():
 </head>
 <body>
   <main>
-    <h1>Three-Tier Architecture — DB Connection Test</h1>
+    <h1>Marisol's Three-Tier Architecture DB Connection Test</h1>
     <p>Traffic path: <strong>Internet → ALB → EC2 (private) → RDS MySQL (private)</strong></p>
     <div class="badge {status_class}">Database: {status_text}</div>
     {details}

@@ -4,7 +4,10 @@ set -euo pipefail
 exec > >(tee /var/log/user-data.log) 2>&1
 echo "Starting webapp bootstrap at $(date -u)"
 
-dnf install -y nginx python3 python3-pip
+dnf install -y nginx python3 python3-pip amazon-ssm-agent
+
+systemctl enable amazon-ssm-agent
+systemctl start amazon-ssm-agent
 
 mkdir -p /etc/nginx/ssl /opt/three-tier-app
 
@@ -26,10 +29,11 @@ cat > /opt/three-tier-app/requirements.txt <<'REQ'
 ${requirements_txt}
 REQ
 
-chown -R nginx:nginx /opt/three-tier-app
+python3 -m venv /opt/three-tier-app/venv
+/opt/three-tier-app/venv/bin/pip install --upgrade pip
+/opt/three-tier-app/venv/bin/pip install -r /opt/three-tier-app/requirements.txt
 
-python3 -m pip install --upgrade pip --break-system-packages
-python3 -m pip install -r /opt/three-tier-app/requirements.txt --break-system-packages
+chown -R nginx:nginx /opt/three-tier-app
 
 cat > /etc/systemd/system/three-tier-app.service <<'SERVICE'
 [Unit]
@@ -42,7 +46,7 @@ User=nginx
 Group=nginx
 WorkingDirectory=/opt/three-tier-app
 Environment=PYTHONUNBUFFERED=1
-ExecStart=/usr/bin/python3 -m gunicorn --bind 127.0.0.1:8080 --workers 2 app:app
+ExecStart=/opt/three-tier-app/venv/bin/gunicorn --bind 127.0.0.1:8080 --workers 2 app:app
 Restart=always
 RestartSec=5
 
