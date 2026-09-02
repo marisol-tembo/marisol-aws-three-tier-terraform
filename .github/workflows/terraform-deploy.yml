@@ -1,13 +1,11 @@
-name: Terraform Checks
+name: Terraform Deploy
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 
 jobs:
-  terraform-checks:
-    name: Terraform Checks
+  terraform-deploy:
+    name: Terraform Plan
     runs-on: ubuntu-latest
 
     env:
@@ -17,10 +15,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@v4
 
       - name: Terraform Format Check
         run: terraform fmt -check -recursive
@@ -31,11 +29,8 @@ jobs:
       - name: Terraform Validate
         run: terraform validate
 
-      - name: Terraform plan
+      - name: Terraform Plan
         run: terraform plan -out=tfplan
 
-      - name: Terraform apply
-        run: terraform apply -auto-approve tfplan
-        
-      - name: Terraform destroy
-        run: terraform destroy -auto-approve
+      # Manual workflow: run apply locally or extend this job when ready.
+      # Always destroy lab resources after demos to control cost.

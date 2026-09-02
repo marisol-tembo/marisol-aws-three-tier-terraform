@@ -11,28 +11,40 @@ resource "aws_vpc" "main" {
 resource "aws_subnet" "public" {
   count = length(var.availability_zones)
 
-  vpc_id = aws_vpc.main.id
-
-  cidr_block = count.index == 0 ? "10.0.1.0/24" : "10.0.2.0/24"
-
-  availability_zone = var.availability_zones[count.index]
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = count.index == 0 ? "10.0.1.0/24" : "10.0.2.0/24"
+  availability_zone       = var.availability_zones[count.index]
+  map_public_ip_on_launch = true
 
   tags = {
     Name = "${var.name}-public-${var.availability_zones[count.index]}"
+    Tier = "public"
   }
 }
 
 resource "aws_subnet" "private_app" {
   count = length(var.availability_zones)
 
-  vpc_id = aws_vpc.main.id
-
-  cidr_block = count.index == 0 ? "10.0.11.0/24" : "10.0.12.0/24"
-
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = count.index == 0 ? "10.0.11.0/24" : "10.0.12.0/24"
   availability_zone = var.availability_zones[count.index]
 
   tags = {
     Name = "${var.name}-private-app-${var.availability_zones[count.index]}"
+    Tier = "private-app"
+  }
+}
+
+resource "aws_subnet" "private_db" {
+  count = length(var.availability_zones)
+
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = count.index == 0 ? "10.0.21.0/24" : "10.0.22.0/24"
+  availability_zone = var.availability_zones[count.index]
+
+  tags = {
+    Name = "${var.name}-private-db-${var.availability_zones[count.index]}"
+    Tier = "private-db"
   }
 }
 
@@ -65,12 +77,36 @@ resource "aws_route_table_association" "public" {
   route_table_id = aws_route_table.public.id
 }
 
+resource "aws_eip" "nat" {
+  domain     = "vpc"
+  depends_on = [aws_internet_gateway.main]
+
+  tags = {
+    Name = "${var.name}-nat-eip"
+  }
+}
+
+resource "aws_nat_gateway" "main" {
+  allocation_id = aws_eip.nat.id
+  subnet_id     = aws_subnet.public[0].id
+
+  tags = {
+    Name = "${var.name}-nat-gateway"
+  }
+}
+
 resource "aws_route_table" "private_app" {
   vpc_id = aws_vpc.main.id
 
   tags = {
     Name = "${var.name}-private-app-rt"
   }
+}
+
+resource "aws_route" "private_app_nat" {
+  route_table_id         = aws_route_table.private_app.id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = aws_nat_gateway.main.id
 }
 
 resource "aws_route_table_association" "private_app" {
@@ -80,35 +116,17 @@ resource "aws_route_table_association" "private_app" {
   route_table_id = aws_route_table.private_app.id
 }
 
-# 1. Allocate an Elastic IP for the NAT Gateway
-resource "aws_eip" "nat" {
-  domain     = "vpc"
-  depends_on = [aws_internet_gateway.main] # Ensures proper cleanup order
+resource "aws_route_table" "private_db" {
+  vpc_id = aws_vpc.main.id
 
   tags = {
-    Name = "main-nat-eip"
+    Name = "${var.name}-private-db-rt"
   }
 }
 
-# 2. Create the NAT Gateway in a Public Subnet
-resource "aws_nat_gateway" "main" {
-  allocation_id = aws_eip.nat.id
-  subnet_id     = aws_subnet.public[0].id
+resource "aws_route_table_association" "private_db" {
+  count = length(aws_subnet.private_db)
 
-  tags = {
-    Name = "main-nat-gateway"
-  }
-}
-
-resource "aws_route" "private_nat" {
-  route_table_id         = aws_route_table.private_app.id
-  destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id         = aws_nat_gateway.main.id
-}
-
-# 4. Associate the Private Subnets with the Private Route Table
-resource "aws_route_table_association" "private" {
-  count          = length(aws_subnet.private_app)
-  subnet_id      = aws_subnet.private_app[count.index].id
-  route_table_id = aws_route_table.private_app.id
+  subnet_id      = aws_subnet.private_db[count.index].id
+  route_table_id = aws_route_table.private_db.id
 }
