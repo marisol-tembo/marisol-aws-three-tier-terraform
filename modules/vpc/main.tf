@@ -92,13 +92,18 @@ resource "aws_eip" "nat" {
 
 # 2. Create the NAT Gateway in a Public Subnet
 resource "aws_nat_gateway" "main" {
-  count         = length(aws_subnet.public)
   allocation_id = aws_eip.nat.id
-  subnet_id     = aws_subnet.public[count.index].id # Must be placed in a public subnet
+  subnet_id     = aws_subnet.public[0].id
 
   tags = {
     Name = "main-nat-gateway"
   }
+}
+
+resource "aws_route" "private_nat" {
+  route_table_id         = aws_route_table.private_app.id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = aws_nat_gateway.main.id
 }
 
 # 4. Associate the Private Subnets with the Private Route Table
