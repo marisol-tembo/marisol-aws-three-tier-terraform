@@ -10,6 +10,10 @@ terraform {
       source  = "hashicorp/random"
       version = "~> 3.0"
     }
+    tls = {
+      source  = "hashicorp/tls"
+      version = "~> 4.0"
+    }
   }
 }
 
@@ -82,6 +86,8 @@ module "compute" {
   db_name                = var.db_name
   db_username            = var.db_username
   db_password            = random_password.db.result
+  tls_cert_pem           = module.alb.tls_cert_pem
+  tls_key_pem            = module.alb.tls_key_pem
 }
 
 module "monitoring" {

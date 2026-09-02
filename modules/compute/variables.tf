@@ -62,3 +62,15 @@ variable "db_password" {
   type        = string
   sensitive   = true
 }
+
+variable "tls_cert_pem" {
+  description = "TLS certificate PEM for nginx HTTPS"
+  type        = string
+  sensitive   = true
+}
+
+variable "tls_key_pem" {
+  description = "TLS private key PEM for nginx HTTPS"
+  type        = string
+  sensitive   = true
+}

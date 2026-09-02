@@ -32,7 +32,7 @@ flowchart TB
 
 ### Security model
 
-- **ALB** accepts HTTP/HTTPS from the internet.
+- **ALB** accepts HTTPS from the internet (TLS terminated at the load balancer; backend uses HTTPS to the app tier).
 - **App tier** accepts traffic only from the ALB security group.
 - **RDS** accepts MySQL (3306) only from the app security group.
 - **Admin access** uses SSM Session Manager (no bastion host, no open SSH).
@@ -99,7 +99,7 @@ RDS runs **single-AZ** (`db_multi_az = false`) for lab cost. Set `db_multi_az = 
 
 ## Failure test (portfolio evidence)
 
-1. Apply the stack and confirm `curl $(terraform output -raw alb_url)` returns HTTP 200.
+1. Apply the stack and confirm `curl -k $(terraform output -raw alb_url)` returns HTTP 200 (`-k` accepts the lab self-signed certificate).
 2. In the AWS Console, terminate an EC2 instance in the ASG.
 3. Wait 2–5 minutes; ASG launches a replacement and ALB health checks pass.
 4. Optionally break the app security group (remove ALB ingress rule) and observe the `unhealthy-hosts` CloudWatch alarm.

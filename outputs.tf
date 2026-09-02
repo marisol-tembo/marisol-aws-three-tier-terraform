@@ -9,8 +9,8 @@ output "alb_dns_name" {
 }
 
 output "alb_url" {
-  description = "HTTP URL for the application"
-  value       = "http://${module.alb.alb_dns_name}"
+  description = "HTTPS URL for the application"
+  value       = "https://${module.alb.alb_dns_name}"
 }
 
 output "asg_name" {
